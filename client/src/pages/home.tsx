@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";  // FIXED: useEffect add kiya polling ke liye
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -6,7 +6,8 @@ import { AdBanner, AdSidebar } from "@/components/layout/AdSlots";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Download, Link } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";  // NEW: Quality selector ke liye
+import { CheckCircle, Download, Link, Loader2 } from "lucide-react";  // FIXED: Loader2 add kiya progress ke liye
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -16,6 +17,17 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState("mp4");
+
+  // NEW: Quality state for selector
+  const [quality, setQuality] = useState("720p");  // Default 720p (faster than 1080p)
+
+  // NEW: Job states for polling and auto-download
+  const [jobId, setJobId] = useState("");
+  const [status, setStatus] = useState("");  // queued, processing, completed, failed
+  const [progress, setProgress] = useState(0);
+  const [downloadUrl, setDownloadUrl] = useState("");
+  const [title, setTitle] = useState("");  // Video title for filename
+  const [errorMessage, setErrorMessage] = useState("");
 
   const detectPlatform = (url: string) => {
     if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
@@ -58,19 +70,31 @@ export default function Home() {
     }
 
     setIsDownloading(true);
-    
+    setJobId("");  // Reset states
+    setStatus("");
+    setProgress(0);
+    setDownloadUrl("");
+    setTitle("");
+    setErrorMessage("");
+
     try {
       const response = await apiRequest('POST', '/api/download-video', {
         url: videoUrl,
         format: downloadFormat,
+        quality: quality,  // NEW: Quality bhej rahe backend ko
         platform: validation.platform,
       });
-      
+
       const result = await response.json();
-      
-      // Redirect to processing page
-      setLocation(`/processing/${result.jobId}`);
-      
+      setJobId(result.jobId);  // Job ID save karo polling ke liye
+
+      toast({
+        title: "Job Started!",
+        description: `Your download is being processed in ${quality}. Please wait...`,  // NEW: Quality mention in toast
+      });
+
+      // Polling shuru ho jayegi useEffect se (neeche)
+
     } catch (error) {
       console.error('Download error:', error);
       toast({
@@ -78,16 +102,70 @@ export default function Home() {
         title: "Download failed",
         description: "Please check the URL and try again.",
       });
-    } finally {
       setIsDownloading(false);
     }
   };
+
+  // NEW: Polling function – Status check karega har 2 seconds
+  const pollStatus = async () => {
+    if (!jobId) return;
+
+    try {
+      const response = await apiRequest('GET', `/api/status/${jobId}`);
+      const data = await response.json();
+
+      setStatus(data.status);
+      setProgress(data.progress || 0);
+      setDownloadUrl(data.downloadUrl || "");
+      setTitle(data.title || "video");  // Title backend se milega
+      setErrorMessage(data.errorMessage || "");
+
+      if (data.status === 'completed') {
+        // AUTO-DOWNLOAD TRIGGER! 🎉
+        if (data.downloadUrl) {
+          const link = document.createElement('a');
+          link.href = `http://localhost:5000${data.downloadUrl}`;  // Backend full URL (port 5000)
+          link.download = `${data.title || 'video'}.${downloadFormat}`;  // Filename with title
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast({
+            title: "Download Started!",
+            description: `Video "${data.title}" in ${quality} is downloading to your Downloads folder.`,
+          });
+
+          setIsDownloading(false);  // Stop loading
+          setJobId("");  // Reset for next download
+        }
+      } else if (data.status === 'failed') {
+        toast({
+          variant: "destructive",
+          title: "Download Failed",
+          description: data.errorMessage || "Something went wrong. Try again.",
+        });
+        setIsDownloading(false);
+        setJobId("");
+      }
+
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  };
+
+  // NEW: useEffect for polling – Har 2 seconds check karega jab jobId hai
+  useEffect(() => {
+    if (jobId && isDownloading) {
+      const interval = setInterval(pollStatus, 2000);  // 2 seconds interval
+      return () => clearInterval(interval);  // Cleanup
+    }
+  }, [jobId, isDownloading]);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <AdBanner />
-      
+
       {/* Hero Section */}
       <section className="min-h-screen dark:gradient-bg-dark gradient-bg relative overflow-hidden">
         <div className="absolute inset-0 bg-background/5"></div>
@@ -132,7 +210,23 @@ export default function Home() {
                         className="text-lg py-6"
                         data-testid="video-url-input"
                       />
-                      
+
+                      {/* NEW: Quality Selector Dropdown */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Select Quality</label>
+                        <Select value={quality} onValueChange={setQuality}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choose quality" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="360p">360p (Low - Fastest)</SelectItem>
+                            <SelectItem value="480p">480p (Medium)</SelectItem>
+                            <SelectItem value="720p">720p (High - Recommended)</SelectItem>
+                            <SelectItem value="1080p">1080p (Full HD - Slower)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Platform Logos */}
                       <div className="text-center">
                         <p className="text-sm text-muted-foreground mb-3">Supported platforms:</p>
@@ -171,6 +265,33 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* NEW: Progress Section – Download status dikhega */}
+              {isDownloading && jobId && (
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-4">
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                        <span className="text-lg font-medium">
+                          {status === 'processing' ? `Downloading in ${quality}... ${progress}%` :
+                            status === 'completed' ? 'Almost done!' : 'Starting...'}
+                        </span>
+                      </div>
+                      {/* Simple Progress Bar */}
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      {errorMessage && (
+                        <p className="text-sm text-destructive">{errorMessage}</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Sidebar with Ads and Features */}
@@ -247,7 +368,7 @@ export default function Home() {
                 color: "red",
               },
               {
-                title: "Facebook Videos", 
+                title: "Facebook Videos",
                 desc: "Download videos from Facebook posts and pages. Get your favorite videos offline.",
                 features: ["Public videos", "Page content", "Story downloads"],
                 color: "blue",

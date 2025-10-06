@@ -1,15 +1,25 @@
 import { type Job, type InsertJob, type BlogPost, type InsertBlogPost, type ContactMessage, type InsertContactMessage } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+// Extend InsertJob with quality (for in-memory use)
+interface InsertJobWithQuality extends InsertJob {
+  quality?: string;  // NEW: Quality field (e.g., '720p')
+}
+
+// Extend Job with quality (for in-memory use)
+interface JobWithQuality extends Job {
+  quality?: string;  // NEW: Quality field
+}
+
 export interface IStorage {
   // Jobs
-  createJob(job: InsertJob): Promise<Job>;
-  getJob(id: string): Promise<Job | undefined>;
+  createJob(job: InsertJobWithQuality): Promise<JobWithQuality>;  // NEW: With quality
+  getJob(id: string): Promise<JobWithQuality | undefined>;  // NEW: With quality
   updateJobStatus(id: string, status: string, progress?: number): Promise<void>;
   updateJobOutput(id: string, outputPath: string): Promise<void>;
   updateJobDownloadUrl(id: string, downloadUrl: string): Promise<void>;
   updateJobError(id: string, errorMessage: string): Promise<void>;
-  getExpiredJobs(): Promise<Job[]>;
+  getExpiredJobs(): Promise<JobWithQuality[]>;  // NEW: With quality
   deleteJob(id: string): Promise<void>;
 
   // Blog Posts
@@ -24,7 +34,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private jobs: Map<string, Job> = new Map();
+  private jobs: Map<string, JobWithQuality> = new Map();  // NEW: With quality
   private blogPosts: Map<string, BlogPost> = new Map();
   private contactMessages: Map<string, ContactMessage> = new Map();
 
@@ -550,13 +560,14 @@ Start protecting your video content with professional watermarks using VidDonloa
   }
 
   // Job methods
-  async createJob(insertJob: InsertJob): Promise<Job> {
+  async createJob(insertJob: InsertJobWithQuality): Promise<JobWithQuality> {  // NEW: With quality
     const id = randomUUID();
-    const job: Job = {
+    const job: JobWithQuality = {
       ...insertJob,
       id,
       title: null,
       downloadFormat: insertJob.downloadFormat || 'mp4',
+      quality: insertJob.quality || '720p',  // NEW: Default 720p if not provided
       status: 'pending',
       progress: 0,
       outputPath: null,
@@ -567,10 +578,11 @@ Start protecting your video content with professional watermarks using VidDonloa
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
     };
     this.jobs.set(id, job);
+    console.log(`Created job: ${id} in ${job.quality}`);  // NEW: Log quality
     return job;
   }
 
-  async getJob(id: string): Promise<Job | undefined> {
+  async getJob(id: string): Promise<JobWithQuality | undefined> {  // NEW: With quality
     return this.jobs.get(id);
   }
 
@@ -614,7 +626,7 @@ Start protecting your video content with professional watermarks using VidDonloa
     }
   }
 
-  async getExpiredJobs(): Promise<Job[]> {
+  async getExpiredJobs(): Promise<JobWithQuality[]> {  // NEW: With quality
     const now = new Date();
     return Array.from(this.jobs.values()).filter(job => job.expiresAt < now);
   }

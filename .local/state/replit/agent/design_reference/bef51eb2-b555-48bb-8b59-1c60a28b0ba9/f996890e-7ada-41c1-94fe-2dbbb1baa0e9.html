@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidDonloader - Free Online Video Processing Tool</title>
+    <meta name="description" content="Free online video processing tool for compression, format conversion, trimming, audio extraction, and watermarking. Process your own videos safely and securely.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Heroicons -->
+    <script src="https://unpkg.com/heroicons@2.0.18/24/outline/index.js" type="module"></script>
+    <script src="https://unpkg.com/heroicons@2.0.18/24/solid/index.js" type="module"></script>
+    
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    sans: ["Inter", "system-ui", "sans-serif"],
+                }
+            },
+        },
+        darkMode: 'class'
+    };
+    </script>
+    
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(221.2 83.2% 53.3%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 84% 4.9%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 84% 4.9%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(221.2 83.2% 53.3%);
+            --radius: 0.75rem;
+        }
+        
+        .dark {
+            --background: hsl(222.2 84% 4.9%);
+            --foreground: hsl(210 40% 98%);
+            --card: hsl(222.2 84% 4.9%);
+            --card-foreground: hsl(210 40% 98%);
+            --popover: hsl(222.2 84% 4.9%);
+            --popover-foreground: hsl(210 40% 98%);
+            --primary: hsl(217.2 91.2% 59.8%);
+            --primary-foreground: hsl(222.2 84% 4.9%);
+            --secondary: hsl(217.2 32.6% 17.5%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(217.2 32.6% 17.5%);
+            --muted-foreground: hsl(215 20.2% 65.1%);
+            --accent: hsl(217.2 32.6% 17.5%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 62.8% 30.6%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(217.2 32.6% 17.5%);
+            --input: hsl(217.2 32.6% 17.5%);
+            --ring: hsl(224.3 76.3% 94.1%);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(221.2 83.2% 53.3%) 0%, hsl(262.1 83.3% 57.8%) 50%, hsl(300 76% 62%) 100%);
+        }
+        
+        .gradient-bg-dark {
+            background: linear-gradient(135deg, hsl(221.2 83.2% 33.3%) 0%, hsl(262.1 83.3% 37.8%) 50%, hsl(300 76% 42%) 100%);
+        }
+        
+        .upload-area {
+            border: 2px dashed hsl(var(--border));
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--primary) / 0.05);
+        }
+        
+        .upload-area.drag-over {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--primary) / 0.1);
+            transform: scale(1.02);
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, hsl(221.2 83.2% 53.3%) 0%, hsl(262.1 83.3% 57.8%) 100%);
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, hsl(221.2 83.2% 48.3%) 0%, hsl(262.1 83.3% 52.8%) 100%);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-background text-foreground">
+    <!-- @COMPONENT: Header -->
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                        <svg class="w-5 h-5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">VidDonloader</span>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#home" class="text-sm font-medium text-foreground hover:text-primary transition-colors">Home</a>
+                    <a href="#features" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
+                    <a href="#blog" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Blog</a>
+                    <a href="#about" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
+                    <a href="#contact" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Contact</a>
+                </nav>
+
+                <!-- Dark Mode Toggle -->
+                <div class="flex items-center space-x-4">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors">
+                        <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 rounded-lg bg-secondary hover:bg-accent transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- AdSense Top Banner -->
+    <div class="w-full bg-muted/30 border-b border-border">
+        <div class="container mx-auto px-4 py-2">
+            <div class="flex justify-center">
+                <div class="w-full max-w-3xl h-20 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                    <span class="text-sm">AdSense Banner (728x90)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <!-- @COMPONENT: Hero Section -->
+        <section id="home" class="min-h-screen dark:gradient-bg-dark gradient-bg relative overflow-hidden">
+            <div class="absolute inset-0 bg-background/5"></div>
+            <div class="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
+                        Process Your Videos
+                        <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">
+                            Like a Pro
+                        </span>
+                    </h1>
+                    <p class="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+                        Free online video processing tool for compression, format conversion, trimming, audio extraction, and watermarking. Safe, secure, and privacy-focused.
+                    </p>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="max-w-6xl mx-auto grid lg:grid-cols-4 gap-8">
+                    <!-- Upload and Processing Area -->
+                    <div class="lg:col-span-3">
+                        <!-- @COMPONENT: Upload Box -->
+                        <div class="bg-card rounded-xl shadow-2xl p-8 mb-8">
+                            <div id="upload-section" class="space-y-6">
+                                <h2 class="text-2xl font-semibold text-card-foreground mb-4">Upload Your Video</h2>
+                                
+                                <!-- Upload Area -->
+                                <div class="upload-area rounded-xl p-12 text-center">
+                                    <div class="space-y-4">
+                                        <div class="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-lg font-medium text-card-foreground mb-2">Drag and drop your video here</p>
+                                            <p class="text-muted-foreground mb-4">or click to browse files</p>
+                                            <p class="text-sm text-muted-foreground">Supports MP4, AVI, MOV (Max 500MB)</p>
+                                        </div>
+                                        <button class="btn-gradient text-primary-foreground px-6 py-3 rounded-lg font-medium hover:scale-105 transition-all">
+                                            Choose File
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Video Preview (Hidden initially) -->
+                                <div id="video-preview" class="hidden bg-muted/30 rounded-xl p-6">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-20 h-14 bg-muted rounded-lg flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-card-foreground" data-mock="true">sample-video.mp4</p>
+                                            <p class="text-sm text-muted-foreground" data-mock="true">25.6 MB • 2:34 duration</p>
+                                        </div>
+                                        <button class="text-destructive hover:text-destructive/80">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Processing Options -->
+                            <div id="processing-options" class="hidden space-y-6 mt-8 pt-8 border-t border-border">
+                                <h3 class="text-xl font-semibold text-card-foreground">Processing Options</h3>
+                                
+                                <!-- Action Selection -->
+                                <div class="space-y-4">
+                                    <label class="block text-sm font-medium text-card-foreground">Select Action</label>
+                                    <select class="w-full p-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent">
+                                        <option value="compress">Compress Video (Reduce file size)</option>
+                                        <option value="convert">Convert Format</option>
+                                        <option value="trim">Trim Video</option>
+                                        <option value="extract">Extract Audio</option>
+                                        <option value="watermark">Add Watermark</option>
+                                    </select>
+                                </div>
+
+                                <!-- Dynamic Options (Shown based on selection) -->
+                                <div id="compress-options" class="space-y-4">
+                                    <label class="block text-sm font-medium text-card-foreground">Compression Quality</label>
+                                    <select class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                        <option value="high">High Quality (Larger file)</option>
+                                        <option value="medium" selected>Medium Quality (Balanced)</option>
+                                        <option value="low">Low Quality (Smaller file)</option>
+                                    </select>
+                                </div>
+
+                                <div id="convert-options" class="hidden space-y-4">
+                                    <label class="block text-sm font-medium text-card-foreground">Output Format</label>
+                                    <select class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                        <option value="mp4">MP4 (Recommended)</option>
+                                        <option value="avi">AVI</option>
+                                        <option value="mov">MOV</option>
+                                        <option value="gif">GIF (Short clips only)</option>
+                                    </select>
+                                </div>
+
+                                <div id="trim-options" class="hidden space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-card-foreground mb-2">Start Time (HH:MM:SS)</label>
+                                            <input type="text" placeholder="00:00:00" class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-card-foreground mb-2">End Time (HH:MM:SS)</label>
+                                            <input type="text" placeholder="00:02:34" class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="watermark-options" class="hidden space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-card-foreground mb-2">Watermark Text</label>
+                                            <input type="text" placeholder="Your watermark text" class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-card-foreground mb-2">Position</label>
+                                            <select class="w-full p-3 border border-input rounded-lg bg-background text-foreground">
+                                                <option value="bottom-right">Bottom Right</option>
+                                                <option value="bottom-left">Bottom Left</option>
+                                                <option value="top-right">Top Right</option>
+                                                <option value="top-left">Top Left</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Process Button -->
+                                <button id="process-btn" class="w-full btn-gradient text-primary-foreground py-4 rounded-lg font-semibold text-lg hover:scale-[1.02] transition-all">
+                                    Start Processing
+                                </button>
+                            </div>
+
+                            <!-- Processing Progress -->
+                            <div id="processing-progress" class="hidden space-y-6 mt-8 pt-8 border-t border-border">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 mx-auto mb-4">
+                                        <svg class="w-16 h-16 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-card-foreground mb-2">Processing Your Video</h3>
+                                    <p class="text-muted-foreground mb-6">This may take a few moments depending on file size...</p>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm text-muted-foreground">
+                                        <span>Progress</span>
+                                        <span data-mock="true">67%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-3">
+                                        <div class="progress-bar bg-gradient-to-r from-primary to-accent h-3 rounded-full" style="width: 67%" data-mock="true"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Processing Status -->
+                                <div class="bg-muted/30 rounded-lg p-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                        <span class="text-sm text-muted-foreground" data-mock="true">Compressing video with high quality settings...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Download Section -->
+                            <div id="download-section" class="hidden space-y-6 mt-8 pt-8 border-t border-border">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xl font-semibold text-card-foreground mb-2">Processing Complete!</h3>
+                                    <p class="text-muted-foreground mb-6">Your video has been processed successfully.</p>
+                                </div>
+
+                                <!-- Download Button -->
+                                <div class="space-y-4">
+                                    <button class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-semibold text-lg transition-all flex items-center justify-center space-x-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-4-12v1m0 0h8a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2h8z" />
+                                        </svg>
+                                        <span>Download Processed Video</span>
+                                    </button>
+                                    <p class="text-xs text-muted-foreground text-center">
+                                        Download link expires in 23:59:45 • File will be automatically deleted after 24 hours
+                                    </p>
+                                </div>
+
+                                <!-- Process Another Video -->
+                                <div class="pt-4">
+                                    <button class="w-full border border-border text-foreground py-3 rounded-lg font-medium hover:bg-muted transition-all">
+                                        Process Another Video
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: Upload Box -->
+                    </div>
+
+                    <!-- Sidebar with Ads and Features -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- AdSense Sidebar -->
+                        <div class="bg-card rounded-xl p-4 shadow-lg">
+                            <div class="w-full h-64 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                                <span class="text-sm text-center">AdSense<br>Sidebar<br>(300x250)</span>
+                            </div>
+                        </div>
+
+                        <!-- Features List -->
+                        <div class="bg-card rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-card-foreground mb-4">Key Features</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground">100% Free</p>
+                                        <p class="text-xs text-muted-foreground">No registration required</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground">Privacy Focused</p>
+                                        <p class="text-xs text-muted-foreground">Files deleted after 24h</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground">Multiple Formats</p>
+                                        <p class="text-xs text-muted-foreground">MP4, AVI, MOV support</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-card-foreground">Fast Processing</p>
+                                        <p class="text-xs text-muted-foreground">Cloud-powered servers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="bg-card rounded-xl p-6 shadow-lg">
+                            <h3 class="text-lg font-semibold text-card-foreground mb-4">Quick Stats</h3>
+                            <div class="space-y-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-primary" data-mock="true">50,000+</div>
+                                    <div class="text-sm text-muted-foreground">Videos Processed</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-primary" data-mock="true">15,000+</div>
+                                    <div class="text-sm text-muted-foreground">Happy Users</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-primary" data-mock="true">500MB</div>
+                                    <div class="text-sm text-muted-foreground">Max File Size</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: Hero Section -->
+
+        <!-- @COMPONENT: Features Section -->
+        <section id="features" class="py-20 bg-background">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                        Powerful Video Processing Tools
+                    </h2>
+                    <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Everything you need to edit, convert, and optimize your videos in one place
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature 1: Compress -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Video Compression</h3>
+                        <p class="text-muted-foreground mb-4">Reduce file size without losing quality. Perfect for sharing on social media or saving storage space.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• Multiple quality options</li>
+                            <li>• Maintains video quality</li>
+                            <li>• Fast processing</li>
+                        </ul>
+                    </div>
+
+                    <!-- Feature 2: Convert -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Format Conversion</h3>
+                        <p class="text-muted-foreground mb-4">Convert between popular video formats like MP4, AVI, MOV, and even create GIFs from short clips.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• MP4, AVI, MOV support</li>
+                            <li>• GIF creation</li>
+                            <li>• Universal compatibility</li>
+                        </ul>
+                    </div>
+
+                    <!-- Feature 3: Trim -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m2-10v18a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2h12a2 2 0 012 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Video Trimming</h3>
+                        <p class="text-muted-foreground mb-4">Cut and trim your videos to the perfect length. Remove unwanted parts with precise time controls.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• Precise time selection</li>
+                            <li>• Multiple segments</li>
+                            <li>• Preview before processing</li>
+                        </ul>
+                    </div>
+
+                    <!-- Feature 4: Audio Extraction -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Audio Extraction</h3>
+                        <p class="text-muted-foreground mb-4">Extract high-quality audio from your videos. Perfect for creating podcasts or music files.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• MP3 and WAV output</li>
+                            <li>• High-quality audio</li>
+                            <li>• Preserve original quality</li>
+                        </ul>
+                    </div>
+
+                    <!-- Feature 5: Watermark -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-pink-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v3M7 4H5a1 1 0 00-1 1v3m0 0v8a2 2 0 002 2h10a2 2 0 002-2V8m0 0V5a1 1 0 00-1-1h-2M7 4h10" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Add Watermarks</h3>
+                        <p class="text-muted-foreground mb-4">Protect your content with custom text or logo watermarks. Choose position and opacity to match your brand.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• Text or logo watermarks</li>
+                            <li>• Custom positioning</li>
+                            <li>• Adjustable transparency</li>
+                        </ul>
+                    </div>
+
+                    <!-- Feature 6: Privacy -->
+                    <div class="bg-card rounded-xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-card-foreground mb-3">Privacy & Security</h3>
+                        <p class="text-muted-foreground mb-4">Your videos are processed securely and automatically deleted after 24 hours. We don't store your content.</p>
+                        <ul class="text-sm text-muted-foreground space-y-1">
+                            <li>• Automatic file deletion</li>
+                            <li>• No data collection</li>
+                            <li>• Secure processing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: Features Section -->
+
+        <!-- @COMPONENT: Blog Section -->
+        <section id="blog" class="py-20 bg-muted/30">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                        Video Editing Tips & Tutorials
+                    </h2>
+                    <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Learn how to get the most out of your videos with our comprehensive guides
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Blog Post 1 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Professional video editing workspace with monitors showing video timeline -->
+                        <img src="https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Professional video editing workspace" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 15, 2024 • 5 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">How to Compress Videos Online for Free</h3>
+                            <p class="text-muted-foreground mb-4">Learn the best techniques for compressing your videos without losing quality. Perfect for social media and web publishing.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Post 2 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Modern smartphone displaying various social media apps -->
+                        <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Smartphone with social media apps" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 12, 2024 • 7 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">Best Video Formats for Social Media Reels</h3>
+                            <p class="text-muted-foreground mb-4">Discover the optimal video formats and settings for Instagram Reels, TikTok, and YouTube Shorts to maximize engagement.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Post 3 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Clean video editing interface showing timeline and trimming tools -->
+                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Video editing timeline interface" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 10, 2024 • 4 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">Trim Videos Without Software</h3>
+                            <p class="text-muted-foreground mb-4">Quick and easy ways to trim your videos online without downloading any software. Save time and storage space.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Post 4 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Professional audio equipment and waveform visualization -->
+                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Audio equipment and waveform" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 8, 2024 • 6 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">Extract Audio from Video Free</h3>
+                            <p class="text-muted-foreground mb-4">Step-by-step guide to extracting high-quality audio from your videos for podcasts, music, or voiceovers.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Post 5 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Brand logo and watermark design concept -->
+                        <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Brand design and logo concept" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 5, 2024 • 5 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">Add Watermark to Videos</h3>
+                            <p class="text-muted-foreground mb-4">Protect your content and build your brand with custom watermarks. Learn best practices for placement and design.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Post 6 -->
+                    <article class="bg-card rounded-xl overflow-hidden shadow-lg card-hover">
+                        <!-- Digital video file formats and conversion concept -->
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=400" alt="Digital file formats visualization" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <div class="text-sm text-muted-foreground mb-2">March 3, 2024 • 8 min read</div>
+                            <h3 class="text-xl font-semibold text-card-foreground mb-3">Video Format Guide 2024</h3>
+                            <p class="text-muted-foreground mb-4">Complete guide to video formats, codecs, and when to use each one. Make informed decisions about your video projects.</p>
+                            <a href="#" class="text-primary hover:text-primary/80 font-medium">Read More →</a>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- View All Posts Button -->
+                <div class="text-center mt-12">
+                    <a href="#" class="inline-flex items-center space-x-2 btn-gradient text-primary-foreground px-8 py-3 rounded-lg font-medium hover:scale-105 transition-all">
+                        <span>View All Posts</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: Blog Section -->
+
+        <!-- @COMPONENT: About Section -->
+        <section id="about" class="py-20 bg-background">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-4xl mx-auto">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-6">About VidDonloader</h2>
+                        <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+                            We're dedicated to providing free, secure, and easy-to-use video processing tools for everyone.
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <!-- Team working on video editing project -->
+                            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" alt="Team collaborating on video projects" class="rounded-xl shadow-lg" />
+                        </div>
+                        <div class="space-y-6">
+                            <h3 class="text-2xl font-semibold text-foreground">Our Mission</h3>
+                            <p class="text-muted-foreground">
+                                VidDonloader is a free online video processing tool built with Next.js for speed and privacy. 
+                                We believe everyone should have access to professional video editing capabilities without 
+                                the need for expensive software or complex installations.
+                            </p>
+                            <p class="text-muted-foreground">
+                                Our platform focuses exclusively on processing your own content - no external downloads, 
+                                no copyright violations, just pure video editing power at your fingertips.
+                            </p>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">100% Free & Open</p>
+                                        <p class="text-sm text-muted-foreground">No hidden fees, no registration required</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">Privacy First</p>
+                                        <p class="text-sm text-muted-foreground">Your files are automatically deleted after 24 hours</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">Legal & Compliant</p>
+                                        <p class="text-sm text-muted-foreground">DMCA compliant, personal use only</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: About Section -->
+
+        <!-- @COMPONENT: Contact Section -->
+        <section id="contact" class="py-20 bg-muted/30">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-2xl mx-auto">
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl md:text-4xl font-bold text-foreground mb-4">Get in Touch</h2>
+                        <p class="text-xl text-muted-foreground">
+                            Have questions, feedback, or need support? We'd love to hear from you.
+                        </p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-8 shadow-lg">
+                        <form class="space-y-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-medium text-card-foreground mb-2">Name</label>
+                                    <input type="text" id="name" name="name" class="w-full p-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent" placeholder="Your name" />
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-card-foreground mb-2">Email</label>
+                                    <input type="email" id="email" name="email" class="w-full p-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent" placeholder="your@email.com" />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="subject" class="block text-sm font-medium text-card-foreground mb-2">Subject</label>
+                                <select id="subject" name="subject" class="w-full p-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent">
+                                    <option value="">Select a topic</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="feedback">Feedback</option>
+                                    <option value="feature">Feature Request</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="message" class="block text-sm font-medium text-card-foreground mb-2">Message</label>
+                                <textarea id="message" name="message" rows="5" class="w-full p-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent" placeholder="Tell us how we can help..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full btn-gradient text-primary-foreground py-3 rounded-lg font-medium hover:scale-[1.02] transition-all">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Alternative Contact Methods -->
+                    <div class="mt-12 text-center">
+                        <h3 class="text-lg font-semibold text-foreground mb-6">Other Ways to Reach Us</h3>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
+                                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-medium text-foreground">Email Support</p>
+                                <p class="text-sm text-muted-foreground" data-mock="true">support@viddonloader.com</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
+                                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-medium text-foreground">Response Time</p>
+                                <p class="text-sm text-muted-foreground">Usually within 24 hours</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
+                                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-medium text-foreground">Report Issues</p>
+                                <p class="text-sm text-muted-foreground">
+                                    <a href="#" class="text-primary hover:text-primary/80">Report Page</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: Contact Section -->
+    </main>
+
+    <!-- @COMPONENT: Footer -->
+    <footer class="bg-card border-t border-border">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Logo and Description -->
+                <div class="md:col-span-1">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z" />
+                            </svg>
+                        </div>
+                        <span class="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">VidDonloader</span>
+                    </div>
+                    <p class="text-sm text-muted-foreground mb-4">
+                        Free online video processing tool for personal use. Safe, secure, and privacy-focused.
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        © 2025 VidDonloader. All rights reserved.
+                    </p>
+                </div>
+
+                <!-- Product Links -->
+                <div>
+                    <h3 class="font-semibold text-card-foreground mb-4">Features</h3>
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">Video Compression</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Format Conversion</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Video Trimming</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Audio Extraction</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Add Watermarks</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support Links -->
+                <div>
+                    <h3 class="font-semibold text-card-foreground mb-4">Support</h3>
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Report Issues</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Feature Requests</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Status Page</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal Links -->
+                <div>
+                    <h3 class="font-semibold text-card-foreground mb-4">Legal</h3>
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li><a href="#" class="hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">DMCA Notice</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Cookie Policy</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Disclaimer</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="mt-8 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-muted-foreground">
+                    Not affiliated with any social media platforms. For personal use only.
+                </p>
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <span class="text-sm text-muted-foreground">Made with</span>
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-sm text-muted-foreground">and Next.js</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // TODO: Implement actual functionality - this is just for demo purposes
+        
+        (function() {
+            // Dark mode toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.classList.toggle('dark', savedTheme === 'dark');
+            
+            themeToggle?.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                const isDark = html.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+
+            // Upload functionality demo
+            const uploadArea = document.querySelector('.upload-area');
+            const videoPreview = document.getElementById('video-preview');
+            const uploadSection = document.getElementById('upload-section');
+            const processingOptions = document.getElementById('processing-options');
+            const processingProgress = document.getElementById('processing-progress');
+            const downloadSection = document.getElementById('download-section');
+            const processBtn = document.getElementById('process-btn');
+
+            // Simulate file upload
+            uploadArea?.addEventListener('click', () => {
+                // TODO: Implement actual file upload with React Dropzone
+                console.log('File upload clicked');
+                
+                // Demo: Show video preview and processing options
+                if (videoPreview && processingOptions) {
+                    videoPreview.classList.remove('hidden');
+                    processingOptions.classList.remove('hidden');
+                }
+            });
+
+            // Drag and drop effects
+            uploadArea?.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea?.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea?.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                // TODO: Handle actual file drop
+                console.log('File dropped');
+            });
+
+            // Process button functionality
+            processBtn?.addEventListener('click', () => {
+                // TODO: Implement actual processing with API calls
+                console.log('Processing started');
+                
+                // Demo: Show processing progress
+                if (processingOptions && processingProgress) {
+                    processingOptions.classList.add('hidden');
+                    processingProgress.classList.remove('hidden');
+                    
+                    // Simulate progress
+                    let progress = 0;
+                    const progressBar = document.querySelector('.progress-bar');
+                    const progressText = document.querySelector('[data-mock="true"]');
+                    
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 10;
+                        if (progress >= 100) {
+                            progress = 100;
+                            clearInterval(interval);
+                            
+                            // Show download section
+                            setTimeout(() => {
+                                if (processingProgress && downloadSection) {
+                                    processingProgress.classList.add('hidden');
+                                    downloadSection.classList.remove('hidden');
+                                }
+                            }, 1000);
+                        }
+                        
+                        if (progressBar) {
+                            progressBar.style.width = `${progress}%`;
+                        }
+                        if (progressText) {
+                            progressText.textContent = `${Math.round(progress)}%`;
+                        }
+                    }, 500);
+                }
+            });
+
+            // Action dropdown functionality
+            const actionSelect = document.querySelector('select');
+            const optionDivs = {
+                'compress': document.getElementById('compress-options'),
+                'convert': document.getElementById('convert-options'),
+                'trim': document.getElementById('trim-options'),
+                'extract': document.getElementById('extract-options'),
+                'watermark': document.getElementById('watermark-options')
+            };
+
+            actionSelect?.addEventListener('change', (e) => {
+                // Hide all option divs
+                Object.values(optionDivs).forEach(div => {
+                    if (div) div.classList.add('hidden');
+                });
+                
+                // Show selected option div
+                const selectedDiv = optionDivs[e.target.value];
+                if (selectedDiv) {
+                    selectedDiv.classList.remove('hidden');
+                }
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Contact form handling
+            const contactForm = document.querySelector('form');
+            contactForm?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // TODO: Implement actual form submission
+                console.log('Contact form submitted');
+                alert('Thank you for your message! We\'ll get back to you soon.');
+            });
+        })();
+    </script>
+</body>
+</html>
