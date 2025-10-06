@@ -1,25 +1,6 @@
-# Python Virtual Environments
-venv/
-env/
-.venv/
-
-# Node.js Dependencies (Aapke liye sabse zaroori)
-node_modules/
-
-# Build and output directories
-__pycache__/
-*.pyc
-*.pyd
-*.so
-
-# Operating System files
+node_modules
+dist
 .DS_Store
-Thumbs.db
-
-# Logs and database files
-*.log
-*.sqlite
-*.db
-
-# Woh Bada Folder jisko aap push nahi karna chahte
-VideoDonloaderWebsite/
+server/public
+vite.config.ts.*
+*.tar.gz
