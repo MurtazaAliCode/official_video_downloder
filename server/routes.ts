@@ -1,16 +1,17 @@
 import { Router, type Application } from "express";
 import { type Request, Response } from "express";
+import fs from 'fs/promises';  // NEW: For file delete
 import { storage } from "./storage.js";
-import { addDownloadJob } from './job-queue';  // Simple queue ke liye
+import { addDownloadJob } from './job-queue';
 import { InsertJob } from "@shared/schema";
-import { log } from "./vite.js";  // Log ke liye
+import { log } from "./vite.js";
 
 // Setup Express Router
 export const router = Router();
 
 // Endpoint: Start download process
 router.post("/download-video", async (req: Request, res: Response) => {
-  const { url, format: downloadFormat, platform } = req.body;  // 'format' ko 'downloadFormat' mein rename (frontend match)
+  const { url, format: downloadFormat, quality = '720p', platform } = req.body;  // 'format' ko 'downloadFormat' mein rename (frontend match)
 
   if (!url) {
     return res.status(400).json({ message: "URL is required" });
@@ -20,17 +21,18 @@ router.post("/download-video", async (req: Request, res: Response) => {
     const insertJob: InsertJob = {
       url,
       downloadFormat: downloadFormat || 'mp4',
+      quality,  // NEW: Quality save karo
       platform: platform || 'youtube',  // Default ya frontend se lo
     };
 
     const job = await storage.createJob(insertJob);
 
-    // Queue mein add karo (simple queue auto-process karegi, full logic wahan)
+    // Queue mein add karo (simple queue auto-process karegi)
     await addDownloadJob({
       id: job.id,
       url: job.url,
       downloadFormat: job.downloadFormat,
-      quality: job.quality  // NEW: Quality pass to queue
+      quality: job.quality
     });
 
     // Client ko response dein
@@ -64,7 +66,7 @@ router.get("/status/:jobId", async (req: Request, res: Response) => {
       status: job.status,
       progress: job.progress,
       downloadUrl: job.downloadUrl,
-      title: job.title,  // Frontend auto-download ke liye
+      title: job.title,  // Frontend auto-download ke liye (Home.tsx mein use hoga)
       errorMessage: job.errorMessage,
     });
   } catch (error) {
@@ -83,11 +85,22 @@ router.get("/download/:jobId", async (req: Request, res: Response) => {
   }
 
   try {
+    // NEW: Check if file exists before serving
+    await fs.access(job.outputPath).catch(err => {
+      throw new Error(`File not found at ${job.outputPath}: ${err.message}`);
+    });
+
     // File ko client ko bhejen
-    res.download(job.outputPath, `${job.title || 'video'}.${job.downloadFormat}`, (err) => {
+    res.download(job.outputPath, `${job.title || 'video'}.${job.downloadFormat}`, async (err) => {
       if (err) {
         console.error(`Error serving file for ${jobId}:`, err);
         res.status(500).send("Could not download the file.");
+      } else {
+        // NEW: File serve hone ke baad server se auto-delete karo (storage aur file)
+        console.log(`File downloaded by user, deleting from server: ${job.outputPath}`);
+        await fs.unlink(job.outputPath).catch(err => console.error(`Failed to delete file: ${job.outputPath}`, err));  // Delete file
+        await storage.deleteJob(jobId);  // Delete job from storage
+        console.log(`Cleaned up job ${jobId} from storage and downloads folder`);
       }
     });
   } catch (error) {

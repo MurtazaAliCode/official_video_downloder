@@ -5,6 +5,7 @@ import { storage } from './storage.js';  // Storage import
 import { downloadVideoWithYtDlp } from './utils/videoDownloader';  // Download import
 import { getTitleFromYtDlp } from './yt-dlp-utils';  // Title import
 import { log } from './vite.js';  // Log import
+import fs from 'fs/promises';  // NEW: For file check
 
 interface JobData {
     id: string;
@@ -21,6 +22,20 @@ interface QueueJob {
 class SimpleJobQueue {
     private queue: QueueJob[] = [];
     private isProcessing = false;
+
+    constructor() {
+        // NEW: Periodic cleanup every 1 minute (60 * 1000 ms)
+        setInterval(async () => {
+            const now = new Date();
+            console.log(`Periodic cleanup check at ${now.toISOString()}`);
+            const expiredJobs = await storage.getExpiredJobs();
+            console.log(`Periodic found ${expiredJobs.length} expired jobs:`, expiredJobs);
+            for (const job of expiredJobs) {
+                await storage.deleteJob(job.id); // Only delete job from storage
+                console.log(`Periodic cleaned up expired job ${job.id} from storage`);
+            }
+        }, 60 * 1000);  // 1 minute interval
+    }
 
     async add(jobData: JobData): Promise<string> {
         const job: QueueJob = {
@@ -61,20 +76,26 @@ class SimpleJobQueue {
             }
 
             // 2. Download
-            console.log(`⬇️ Starting download for ${jobId} in ${quality}...`);  // NEW: Quality in log
+            console.log(`⬇️ Starting download for ${jobId} in ${quality} at ${new Date().toISOString()}...`);
             const outputPath = path.join(process.cwd(), 'downloads', `${jobId}.${downloadFormat}`);
-
-            const result = await downloadVideoWithYtDlp(url, outputPath, downloadFormat, quality, (progress) => {  // NEW: Pass quality as 4th param
-                console.log(`📊 Progress for ${jobId}: ${progress}%`);
-                // Storage update (throttled)
+            const startTime = Date.now();
+            const result = await downloadVideoWithYtDlp(url, outputPath, downloadFormat, quality, (progress) => {
+                console.log(`📊 Progress for ${jobId}: ${progress}% at ${new Date().toISOString()}`);
                 if (progress % 10 === 0) {
                     storage.updateJobStatus(jobId, 'processing', 10 + Math.floor(progress * 0.8)).catch(err => console.error('Progress update error:', err));
                 }
             });
+            const endTime = Date.now();
+            console.log(`⬇️ Download completed for ${jobId} in ${((endTime - startTime) / 1000)} seconds`);
 
             if (!result.success) {
                 throw new Error(result.error || 'Download failed');
             }
+
+            // NEW: Confirm file exists
+            await fs.access(outputPath).catch(err => {
+                throw new Error(`File not found at ${outputPath} after download: ${err.message}`);
+            });
 
             // 3. Finalize
             console.log(`🏁 Finalizing ${jobId}...`);
@@ -96,6 +117,17 @@ class SimpleJobQueue {
         } finally {
             this.isProcessing = false;
             this.processNext();  // Next job
+
+            // Cleanup expired jobs from storage only (no file delete)
+            const now = new Date();
+            console.log(`Cleanup check at ${now.toISOString()} for job ${jobId}`);
+            const expiredJobs = await storage.getExpiredJobs();
+            console.log(`Found ${expiredJobs.length} expired jobs:`, expiredJobs);
+            for (const job of expiredJobs) {
+                console.log(`Processing expired job ${job.id}, expiresAt: ${job.expiresAt}, now: ${now}`);
+                await storage.deleteJob(job.id); // Only delete job from storage (memory/DB)
+                console.log(`Cleaned up expired job ${job.id} from storage`);
+            }
         }
     }
 

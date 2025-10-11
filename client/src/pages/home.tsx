@@ -227,26 +227,20 @@ export default function Home() {
                         </Select>
                       </div>
 
-                      {/* Platform Logos */}
+                      {/* Platform Logos - Updated with Images */}
                       <div className="text-center">
                         <p className="text-sm text-muted-foreground mb-3">Supported platforms:</p>
                         <div className="flex justify-center items-center space-x-8">
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
-                              <span className="text-white font-bold text-lg">YT</span>
-                            </div>
+                            <img src="/src/assets/youtube.jpg" alt="YouTube Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">YouTube</span>
                           </div>
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                              <span className="text-white font-bold text-lg">FB</span>
-                            </div>
+                            <img src="/src/assets/facebook.png" alt="Facebook Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">Facebook</span>
                           </div>
                           <div className="flex flex-col items-center space-y-2">
-                            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                              <span className="text-white font-bold text-lg">IG</span>
-                            </div>
+                            <img src="/src/assets/instagram.jpg" alt="Instagram Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">Instagram</span>
                           </div>
                         </div>

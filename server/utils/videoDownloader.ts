@@ -1,57 +1,58 @@
-import youtubedl from 'youtube-dl-exec';
+import { execFile } from 'child_process';
 import path from 'path';
-import fs from 'fs/promises';
+import { promisify } from 'util';
+import fs from 'fs/promises';  // NEW: For file check
 
-/**
- * Video download using youtube-dl-exec (wrapper for yt-dlp, auto-binary)
- * @param videoUrl - Video URL
- * @param outputPath - Save path
- * @param downloadFormat - 'mp4' or 'mp3'
- * @param quality - Video quality (e.g., '720p')
- * @param onProgress - Progress callback (simulated, real via logs)
- * @returns Promise with result
- */
+const execFileAsync = promisify(execFile);
+
 export async function downloadVideoWithYtDlp(
-    videoUrl: string,
+    url: string,
     outputPath: string,
-    downloadFormat: string = 'mp4',
-    quality: string = '720p',  // NEW: Quality param with default
+    format: string,
+    quality: string,
     onProgress?: (progress: number) => void
-): Promise<{ success: boolean; filePath?: string; error?: string }> {
+): Promise<{ success: boolean; error?: string }> {
     try {
-        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+        const ytDlpPath = path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp.exe');
+        console.log(`Attempting to use yt-dlp path: ${ytDlpPath}`); // Enhanced debug
 
-        console.log(`Starting ${downloadFormat} download with youtube-dl-exec in ${quality}: ${videoUrl}`);  // NEW: Quality in log
+        // Check if yt-dlp executable exists
+        if (!(await fs.access(ytDlpPath).then(() => true).catch(() => false))) {
+            throw new Error(`yt-dlp executable not found at ${ytDlpPath}. Please install youtube-dl-exec or verify path.`);
+        }
 
-        // Command options
         const options = {
-            format: downloadFormat === 'mp3' ? 'bestaudio/best' : `best[height<=${quality.replace('p', '')}][ext=mp4]/best[height<=${quality.replace('p', '')}]/best`,  // FIXED: Use quality for format
+            format: format === 'mp3' ? 'bestaudio/best' : `best[height<=${quality.replace('p', '')}][ext=mp4]/best`,
             output: outputPath,
             'no-warnings': true,
-            'ignore-errors': true,  // Graceful fail
+            'ignore-errors': true,
         };
 
-        // Progress simulate (youtube-dl-exec logs se real progress parse kar sakte hain later)
-        const startTime = Date.now();
+        const args = [
+            url,
+            '--format', options.format,
+            '--output', options.output,
+            '--no-warnings',
+            '--ignore-errors',
+        ];
 
-        // Run download
-        await youtubedl(videoUrl, options);
+        console.log(`Running yt-dlp with args: ${args.join(' ')}`); // Debug args
+        const { stdout, stderr } = await execFileAsync(ytDlpPath, args);
 
-        const duration = Date.now() - startTime;
-        console.log(`Download took ${duration}ms`);
+        if (stderr) {
+            console.error('yt-dlp stderr:', stderr);
+            throw new Error(`Download failed: ${stderr}`);
+        }
 
-        // File check
-        await fs.access(outputPath);
-        console.log(`Download successful: ${outputPath}`);
-        onProgress?.(100);
+        // Verify file creation
+        await fs.access(outputPath).catch(err => {
+            throw new Error(`File not created at ${outputPath}: ${err.message}`);
+        });
 
-        return { success: true, filePath: outputPath };
-
+        console.log('Download successful, file saved at:', outputPath);
+        return { success: true };
     } catch (error) {
         console.error('youtube-dl-exec download failed:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
-        };
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
