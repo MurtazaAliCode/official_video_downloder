@@ -55,6 +55,7 @@
 @layer base {
   * {
     @apply border-border;
+    /* Using custom class defined below */
   }
 
   body {
@@ -63,46 +64,61 @@
 }
 
 @layer components {
+  .border-border {
+    border: 1px solid hsl(var(--border));
+    /* Define custom class using --border variable */
+  }
+
+  .bg-background {
+    background-color: hsl(var(--background));
+    /* Ensure this exists for body styling */
+  }
+
+  .text-foreground {
+    color: hsl(var(--foreground));
+    /* Ensure this exists for body styling */
+  }
+
   .gradient-bg {
     background: linear-gradient(135deg, hsl(221.2, 83.2%, 53.3%) 0%, hsl(262.1, 83.3%, 57.8%) 50%, hsl(300, 76%, 62%) 100%);
   }
-  
+
   .gradient-bg-dark {
     background: linear-gradient(135deg, hsl(221.2, 83.2%, 33.3%) 0%, hsl(262.1, 83.3%, 37.8%) 50%, hsl(300, 76%, 42%) 100%);
   }
-  
+
   .btn-gradient {
     background: linear-gradient(135deg, hsl(221.2, 83.2%, 53.3%) 0%, hsl(262.1, 83.3%, 57.8%) 100%);
   }
-  
+
   .btn-gradient:hover {
     background: linear-gradient(135deg, hsl(221.2, 83.2%, 48.3%) 0%, hsl(262.1, 83.3%, 52.8%) 100%);
   }
-  
+
   .upload-area {
     border: 2px dashed hsl(var(--border));
     transition: all 0.3s ease;
   }
-  
+
   .upload-area:hover {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--primary) / 0.05);
   }
-  
+
   .upload-area.drag-over {
     border-color: hsl(var(--primary));
     background-color: hsl(var(--primary) / 0.1);
     transform: scale(1.02);
   }
-  
+
   .progress-bar {
     transition: width 0.3s ease;
   }
-  
+
   .card-hover {
     transition: all 0.3s ease;
   }
-  
+
   .card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
