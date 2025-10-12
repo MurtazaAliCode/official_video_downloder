@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Clock, FileText } from "lucide-react";
-import { insertContactMessageSchema } from "@shared/schema";
+import { insertContactMessageSchema } from "@shared/schema"; // Ensure this file exists in root/shared/schema.ts
 
 const contactFormSchema = insertContactMessageSchema.extend({
   subject: z.string().min(1, "Please select a subject"),
@@ -37,15 +37,15 @@ export default function Contact() {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-    
+
     try {
       await apiRequest('POST', '/api/contact', data);
-      
+
       toast({
         title: "Message sent successfully!",
         description: "We'll get back to you within 24 hours.",
       });
-      
+
       form.reset();
     } catch (error) {
       console.error('Contact form error:', error);
@@ -62,7 +62,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
@@ -89,9 +89,9 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Name</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Your name" 
-                              {...field} 
+                            <Input
+                              placeholder="Your name"
+                              {...field}
                               data-testid="contact-name-input"
                             />
                           </FormControl>
@@ -106,10 +106,10 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input 
+                            <Input
                               type="email"
-                              placeholder="your@email.com" 
-                              {...field} 
+                              placeholder="your@email.com"
+                              {...field}
                               data-testid="contact-email-input"
                             />
                           </FormControl>
@@ -118,15 +118,15 @@ export default function Contact() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Subject</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           defaultValue={field.value}
                           data-testid="contact-subject-select"
                         >
@@ -147,7 +147,7 @@ export default function Contact() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="message"
@@ -155,10 +155,10 @@ export default function Contact() {
                       <FormItem>
                         <FormLabel>Message</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Tell us how we can help..."
                             rows={5}
-                            {...field} 
+                            {...field}
                             data-testid="contact-message-textarea"
                           />
                         </FormControl>
@@ -166,7 +166,7 @@ export default function Contact() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <Button
                     type="submit"
                     className="w-full btn-gradient text-primary-foreground py-3 font-medium hover:scale-[1.02] transition-all"
