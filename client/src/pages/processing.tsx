@@ -7,6 +7,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { DownloadLink } from "@/components/video/download-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { Job } from "../../shared/types"; // Added for type safety
 
 interface ProcessingPageProps {
   params: {
@@ -17,8 +18,8 @@ interface ProcessingPageProps {
 export default function Processing({ params }: ProcessingPageProps) {
   const [, setLocation] = useLocation();
   const { jobId } = params;
-  
-  const { data: job, isLoading } = useQuery({
+
+  const { data: job, isLoading } = useQuery<Job | undefined>({
     queryKey: ['/api/status', jobId],
     refetchInterval: (data) => {
       // Stop polling if job is completed or failed
@@ -72,17 +73,17 @@ export default function Processing({ params }: ProcessingPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-2xl mx-auto space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Video Processing</h1>
             <p className="text-muted-foreground">
-              {job.status === 'completed' 
-                ? 'Your video has been processed successfully!' 
+              {job.status === 'completed'
+                ? 'Your video has been processed successfully!'
                 : job.status === 'failed'
-                ? 'Processing failed. Please try again.'
-                : 'Processing your video...'}
+                  ? 'Processing failed. Please try again.'
+                  : 'Processing your video...'}
             </p>
           </div>
 
@@ -124,7 +125,6 @@ export default function Processing({ params }: ProcessingPageProps) {
               </CardHeader>
               <CardContent className="space-y-6">
                 <ProgressBar value={job.progress || 0} />
-                
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
