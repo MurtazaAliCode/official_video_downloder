@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";  // FIXED: useEffect add kiya polling ke liye
+import { useState, useEffect } from "react"; // FIXED: useEffect add kiya polling ke liye
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -6,8 +6,8 @@ import { AdBanner, AdSidebar } from "@/components/layout/AdSlots";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";  // NEW: Quality selector ke liye
-import { CheckCircle, Download, Link, Loader2 } from "lucide-react";  // FIXED: Loader2 add kiya progress ke liye
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // NEW: Quality selector ke liye
+import { CheckCircle, Download, Link, Loader2 } from "lucide-react"; // FIXED: Loader2 add kiya progress ke liye
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -19,14 +19,14 @@ export default function Home() {
   const [downloadFormat, setDownloadFormat] = useState("mp4");
 
   // NEW: Quality state for selector
-  const [quality, setQuality] = useState("720p");  // Default 720p (faster than 1080p)
+  const [quality, setQuality] = useState("720p"); // Default 720p (faster than 1080p)
 
   // NEW: Job states for polling and auto-download
   const [jobId, setJobId] = useState("");
-  const [status, setStatus] = useState("");  // queued, processing, completed, failed
+  const [status, setStatus] = useState(""); // queued, processing, completed, failed
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState("");
-  const [title, setTitle] = useState("");  // Video title for filename
+  const [title, setTitle] = useState(""); // Video title for filename
   const [errorMessage, setErrorMessage] = useState("");
 
   const detectPlatform = (url: string) => {
@@ -70,7 +70,7 @@ export default function Home() {
     }
 
     setIsDownloading(true);
-    setJobId("");  // Reset states
+    setJobId(""); // Reset states
     setStatus("");
     setProgress(0);
     setDownloadUrl("");
@@ -81,19 +81,21 @@ export default function Home() {
       const response = await apiRequest('POST', '/api/download-video', {
         url: videoUrl,
         format: downloadFormat,
-        quality: quality,  // NEW: Quality bhej rahe backend ko
+        quality: quality, // NEW: Quality bhej rahe backend ko
         platform: validation.platform,
       });
 
       const result = await response.json();
-      setJobId(result.jobId);  // Job ID save karo polling ke liye
+      if (result.jobId) {
+        setJobId(result.jobId); // Job ID save karo polling ke liye
+      } else {
+        throw new Error("No job ID received from server");
+      }
 
       toast({
         title: "Job Started!",
-        description: `Your download is being processed in ${quality}. Please wait...`,  // NEW: Quality mention in toast
+        description: `Your download is being processed in ${quality}. Please wait...`, // NEW: Quality mention in toast
       });
-
-      // Polling shuru ho jayegi useEffect se (neeche)
 
     } catch (error) {
       console.error('Download error:', error);
@@ -117,15 +119,14 @@ export default function Home() {
       setStatus(data.status);
       setProgress(data.progress || 0);
       setDownloadUrl(data.downloadUrl || "");
-      setTitle(data.title || "video");  // Title backend se milega
+      setTitle(data.title || "video"); // Title backend se milega
       setErrorMessage(data.errorMessage || "");
 
       if (data.status === 'completed') {
-        // AUTO-DOWNLOAD TRIGGER! 🎉
         if (data.downloadUrl) {
           const link = document.createElement('a');
-          link.href = `http://localhost:5000${data.downloadUrl}`;  // Backend full URL (port 5000)
-          link.download = `${data.title || 'video'}.${downloadFormat}`;  // Filename with title
+          link.href = data.downloadUrl; // Full URL backend se milega
+          link.download = `${data.title || 'video'}.${downloadFormat}`; // Filename with title
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -135,8 +136,8 @@ export default function Home() {
             description: `Video "${data.title}" in ${quality} is downloading to your Downloads folder.`,
           });
 
-          setIsDownloading(false);  // Stop loading
-          setJobId("");  // Reset for next download
+          setIsDownloading(false); // Stop loading
+          setJobId(""); // Reset for next download
         }
       } else if (data.status === 'failed') {
         toast({
@@ -156,8 +157,8 @@ export default function Home() {
   // NEW: useEffect for polling – Har 2 seconds check karega jab jobId hai
   useEffect(() => {
     if (jobId && isDownloading) {
-      const interval = setInterval(pollStatus, 2000);  // 2 seconds interval
-      return () => clearInterval(interval);  // Cleanup
+      const interval = setInterval(pollStatus, 2000); // 2 seconds interval
+      return () => clearInterval(interval); // Cleanup
     }
   }, [jobId, isDownloading]);
 
@@ -227,20 +228,20 @@ export default function Home() {
                         </Select>
                       </div>
 
-                      {/* Platform Logos - Updated with Images */}
+                      {/* Platform Logos - Updated with Images from public/assets */}
                       <div className="text-center">
                         <p className="text-sm text-muted-foreground mb-3">Supported platforms:</p>
                         <div className="flex justify-center items-center space-x-8">
                           <div className="flex flex-col items-center space-y-2">
-                            <img src="/src/assets/youtube.jpg" alt="YouTube Logo" className="w-12 h-12 rounded-lg" />
+                            <img src="/assets/youtube.jpg" alt="YouTube Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">YouTube</span>
                           </div>
                           <div className="flex flex-col items-center space-y-2">
-                            <img src="/src/assets/facebook.png" alt="Facebook Logo" className="w-12 h-12 rounded-lg" />
+                            <img src="/assets/facebook.png" alt="Facebook Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">Facebook</span>
                           </div>
                           <div className="flex flex-col items-center space-y-2">
-                            <img src="/src/assets/instagram.jpg" alt="Instagram Logo" className="w-12 h-12 rounded-lg" />
+                            <img src="/assets/instagram.jpg" alt="Instagram Logo" className="w-12 h-12 rounded-lg" />
                             <span className="text-xs text-muted-foreground">Instagram</span>
                           </div>
                         </div>

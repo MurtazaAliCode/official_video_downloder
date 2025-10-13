@@ -8,11 +8,13 @@ export default defineConfig({
         alias: {
             '@': path.resolve(__dirname, './src'), // Maps @/ to src/
             '@shared': path.resolve(__dirname, '../shared'), // Maps @shared/ to root shared folder
-            '@assets': path.resolve(__dirname, './src/assets'), // Maps @assets/ to src/assets/
+            // '@assets' hata diya kyunki ab images public/assets mein hain
         },
     },
     base: '/', // Ensure correct base URL for Vercel
+    publicDir: 'public', // Explicitly set public folder for static assets
     build: {
-        assetsDir: 'assets', // Output assets to /assets/ in dist
+        assetsDir: 'assets', // Output imported assets to /assets/ in dist
+        outDir: 'dist', // Default output directory
     },
 });

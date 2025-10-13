@@ -8,37 +8,26 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Calendar, Download } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
 
-// === IMAGE IMPORTS (PATH CORRECTED) ===
-import guide1 from "../../assets/guied_1.png";
-import guide2 from "../../assets/guied_2.png";
-import guide3 from "../../assets/guied_3.png";
-import guide4 from "../../assets/guied_4.png";
-// =======================================
-
 // === TUTORIAL DATA (ENGLISH GUIDE APPLIED) ===
 const downloadGuideSteps = [
   {
-    image: guide1,
+    image: "/assets/guied_1.png",
     title: "Interface (First Look)",
-    // Guide changed to English
     desc: "Upon landing on the VidDonloader homepage, you will see this clean interface. Your entire downloading process starts right here.",
   },
   {
-    image: guide2,
+    image: "/assets/guied_2.png",
     title: "Paste the Video Link",
-    // Guide changed to English
     desc: "Copy the link of the video you wish to download from any supported platform (YouTube, Facebook, Instagram), and paste it into the 'Enter Video URL' field.",
   },
   {
-    image: guide3,
+    image: "/assets/guied_3.png",
     title: "Choose Quality",
-    // Guide changed to English
     desc: "After pasting the link, use the 'Select Quality' dropdown menu to choose your preferred resolution (720p is Recommended).",
   },
   {
-    image: guide4,
+    image: "/assets/guied_4.png",
     title: "Click 'Download'",
-    // Guide changed to English
     desc: "Once the quality is selected, click the 'Download MP4' button. Your video will start downloading immediately!",
   },
 ];
@@ -111,7 +100,6 @@ export default function BlogIndex() {
               {/* ======================================================= */}
 
               {isLoading ? (
-                // ... Loading State (Unchanged)
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* ... loading skeleton ... */}
                 </div>

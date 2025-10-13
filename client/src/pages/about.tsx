@@ -2,9 +2,6 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
-// === ZAROORI BADLAO: PATH THEEK KIYA GAYA ===
-// Ab yeh path seedha client/src/assets/team_photo.png par point karega
-import teamImage from "../assets/team_photo.png";
 
 export default function About() {
   return (
@@ -24,9 +21,8 @@ export default function About() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
-              {/* Image variable ka istemal pehle hi ki tarah hoga */}
               <img
-                src={teamImage}
+                src="/assets/team_photo.png"  // Updated to use public/assets path
                 alt="VidDonloader Team working collaboratively"
                 className="w-full h-auto rounded-xl shadow-lg object-cover"
                 style={{ maxHeight: '400px' }}
