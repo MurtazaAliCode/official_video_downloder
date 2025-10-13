@@ -13,10 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Clock, FileText } from "lucide-react";
-import { insertContactMessageSchema } from "@shared/schema"; // Ensure this file exists in root/shared/schema.ts
+import { InsertContactMessage } from "../../shared/types"; // Updated import
 
-const contactFormSchema = insertContactMessageSchema.extend({
+// Define a frontend-safe schema
+const contactFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
   subject: z.string().min(1, "Please select a subject"),
+  message: z.string().min(1, "Message is required"),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
