@@ -3,7 +3,7 @@ import { type Request, Response } from "express";
 import fs from 'fs/promises';  // NEW: For file delete
 import { storage } from "./storage.js";
 import { addDownloadJob } from './job-queue';
-import { InsertJob } from "@shared/schema";
+import { InsertJob } from "../../shared/types"; // Updated path from "@shared/schema" to "../../shared/types"
 import { log } from "./vite.js";
 
 // Setup Express Router
