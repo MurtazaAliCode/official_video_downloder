@@ -8,13 +8,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Logging middleware: Safai ke liye accha hai
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
+  res.json = function (bodyJson: any, ...args: any[]) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
@@ -43,7 +43,7 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   // SANITY CHECK ROUTE: Yeh check karne ke liye ki Express theek se chal raha hai ya nahi.
-  app.get('/api/status-check', (_req, res) => {
+  app.get('/api/status-check', (_req: Request, res: Response) => {
     res.json({ success: true, message: 'Server is running and routes are active!' });
   });
 
@@ -56,7 +56,6 @@ app.use((req, res, next) => {
     console.error(`Unhandled API Error (${status}):`, err);
 
     res.status(status).json({ message });
-    // throw err; <--- Is line ko hata diya gaya hai.
   });
 
   // Development mein Vite server set up karein, baaki mein static files serve karein
@@ -66,12 +65,11 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Server start karein
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Server start karein - Render ke default port 3000 use karne ke liye adjust
+  const port = parseInt(process.env.PORT || '3000', 10); // Render default port
   server.listen({
     port,
     host: "0.0.0.0",
-    // 'reusePort: true' hata diya gaya hai
   }, () => {
     log(`serving on port ${port}`);
   });
