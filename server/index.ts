@@ -58,14 +58,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(status).json({ message });
   });
 
-  // Development mein Vite server set up karein, baaki mein static files serve karein
+  // Development mein Vite server set up karein
+  // Production mein static serve mat karo (frontend Vercel pe hai)
   if (app.get("env") === "development") {
     await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  } // Else block remove kiya gaya - backend only for Render
 
-  // Server start karein - Render ke default port 3000 use karne ke liye adjust
+  // Server start karein - Render ke default port use karne ke liye adjust
   const port = parseInt(process.env.PORT || '3000', 10); // Render default port
   server.listen({
     port,
