@@ -1,17 +1,16 @@
-// server/job-queue.ts - Full processing logic here (no circular import)
 import { stat } from 'fs/promises';
 import path from 'path';
-import { storage } from './storage.js';  // Storage import
-import { downloadVideoWithYtDlp } from './utils/videoDownloader';  // Download import
-import { getTitleFromYtDlp } from './yt-dlp-utils';  // Title import
-import { log } from './vite.js';  // Log import
-import fs from 'fs/promises';  // NEW: For file check
+import { storage } from './storage.js';
+import { downloadVideoWithYtDlp } from './utils/videoDownloader';
+import { getTitleFromYtDlp } from './yt-dlp-utils';
+import { log } from './vite.js';
+import fs from 'fs/promises';
 
 interface JobData {
     id: string;
     url: string;
     downloadFormat: string;
-    quality: string;  // NEW: Quality field (e.g., '720p')
+    quality: string;
 }
 
 interface QueueJob {
@@ -24,26 +23,31 @@ class SimpleJobQueue {
     private isProcessing = false;
 
     constructor() {
-        // NEW: Periodic cleanup every 1 minute (60 * 1000 ms)
         setInterval(async () => {
             const now = new Date();
             console.log(`Periodic cleanup check at ${now.toISOString()}`);
             const expiredJobs = await storage.getExpiredJobs();
             console.log(`Periodic found ${expiredJobs.length} expired jobs:`, expiredJobs);
             for (const job of expiredJobs) {
-                await storage.deleteJob(job.id); // Only delete job from storage
+                await storage.deleteJob(job.id);
                 console.log(`Periodic cleaned up expired job ${job.id} from storage`);
             }
-        }, 60 * 1000);  // 1 minute interval
+        }, 60 * 1000);
     }
 
     async add(jobData: JobData): Promise<string> {
+        // Validate URL before adding to queue
+        if (!jobData.url || typeof jobData.url !== 'string' || !jobData.url.match(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/)) {
+            console.error('Invalid job URL:', jobData.url);
+            throw new Error('Invalid or missing URL in job');
+        }
+
         const job: QueueJob = {
             data: jobData,
             status: 'pending',
         };
         this.queue.push(job);
-        console.log(`Added job to queue: ${jobData.id} in ${jobData.quality}`);  // NEW: Log quality
+        console.log(`Added job to queue: ${jobData.id} in ${jobData.quality}`);
 
         if (!this.isProcessing) {
             this.processNext();
@@ -56,24 +60,29 @@ class SimpleJobQueue {
         if (this.isProcessing || this.queue.length === 0) return;
 
         this.isProcessing = true;
-        const queueJob = this.queue.shift()!;  // First job lo
-        const { id: jobId, url, downloadFormat, quality = '720p' } = queueJob.data;  // NEW: Destructure quality with default
+        const queueJob = this.queue.shift()!;
+        const { id: jobId, url, downloadFormat, quality = '720p' } = queueJob.data;
         queueJob.status = 'processing';
 
         console.log(`Processing job from queue: ${jobId} in ${quality}`);
 
         try {
-            // Update storage to 'processing' (frontend polling ke liye)
+            // Validate URL again (safety)
+            if (!url || typeof url !== 'string' || !url.match(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/)) {
+                throw new Error(`Invalid URL for job ${jobId}: ${url}`);
+            }
+
+            // Update storage to 'processing'
             await storage.updateJobStatus(jobId, 'processing', 5);
 
             // 1. Title fetch
             console.log(`🔍 Fetching title for ${jobId}...`);
             const title = await getTitleFromYtDlp(url);
-            if (title) {
-                // Title storage mein update (optional, status mein bhejte hain)
-                await storage.updateJobStatus(jobId, 'processing', 10);  // Progress 10%
-                log(`Job ${jobId}: Title fetched: ${title}`);
+            if (!title) {
+                throw new Error(`Failed to fetch title for ${url}`);
             }
+            await storage.updateJobStatus(jobId, 'processing', 10);
+            log(`Job ${jobId}: Title fetched: ${title}`);
 
             // 2. Download
             console.log(`⬇️ Starting download for ${jobId} in ${quality} at ${new Date().toISOString()}...`);
@@ -92,7 +101,7 @@ class SimpleJobQueue {
                 throw new Error(result.error || 'Download failed');
             }
 
-            // NEW: Confirm file exists
+            // Confirm file exists
             await fs.access(outputPath).catch(err => {
                 throw new Error(`File not found at ${outputPath} after download: ${err.message}`);
             });
@@ -116,16 +125,15 @@ class SimpleJobQueue {
             queueJob.status = 'failed';
         } finally {
             this.isProcessing = false;
-            this.processNext();  // Next job
+            this.processNext();
 
-            // Cleanup expired jobs from storage only (no file delete)
             const now = new Date();
             console.log(`Cleanup check at ${now.toISOString()} for job ${jobId}`);
             const expiredJobs = await storage.getExpiredJobs();
             console.log(`Found ${expiredJobs.length} expired jobs:`, expiredJobs);
             for (const job of expiredJobs) {
                 console.log(`Processing expired job ${job.id}, expiresAt: ${job.expiresAt}, now: ${now}`);
-                await storage.deleteJob(job.id); // Only delete job from storage (memory/DB)
+                await storage.deleteJob(job.id);
                 console.log(`Cleaned up expired job ${job.id} from storage`);
             }
         }
@@ -139,7 +147,7 @@ class SimpleJobQueue {
 export const jobQueue = new SimpleJobQueue();
 
 export const addDownloadJob = async (jobData: JobData): Promise<string> => {
-    console.log('Adding job to simple queue:', jobData.id, `in ${jobData.quality}`);  // NEW: Log quality
+    console.log('Adding job to simple queue:', jobData.id, `in ${jobData.quality}`);
     return await jobQueue.add(jobData);
 };
 

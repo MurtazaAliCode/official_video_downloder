@@ -1,40 +1,33 @@
 import { type Job, type InsertJob, type BlogPost, type InsertBlogPost, type ContactMessage, type InsertContactMessage } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// Extend InsertJob with quality (for in-memory use)
 interface InsertJobWithQuality extends InsertJob {
-  quality?: string;  // NEW: Quality field (e.g., '720p')
+  quality?: string;
 }
 
-// Extend Job with quality (for in-memory use)
 interface JobWithQuality extends Job {
-  quality?: string;  // NEW: Quality field
+  quality?: string;
 }
 
 export interface IStorage {
-  // Jobs
-  createJob(job: InsertJobWithQuality): Promise<JobWithQuality>;  // NEW: With quality
-  getJob(id: string): Promise<JobWithQuality | undefined>;  // NEW: With quality
+  createJob(job: InsertJobWithQuality): Promise<JobWithQuality>;
+  getJob(id: string): Promise<JobWithQuality | undefined>;
   updateJobStatus(id: string, status: string, progress?: number): Promise<void>;
   updateJobOutput(id: string, outputPath: string): Promise<void>;
   updateJobDownloadUrl(id: string, downloadUrl: string): Promise<void>;
   updateJobError(id: string, errorMessage: string): Promise<void>;
-  getExpiredJobs(): Promise<JobWithQuality[]>;  // NEW: With quality
+  getExpiredJobs(): Promise<JobWithQuality[]>;
   deleteJob(id: string): Promise<void>;
-
-  // Blog Posts
   getBlogPosts(): Promise<BlogPost[]>;
   getBlogPost(slug: string): Promise<BlogPost | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
   updateBlogPost(id: string, updates: Partial<InsertBlogPost>): Promise<BlogPost>;
-
-  // Contact Messages
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   getContactMessages(): Promise<ContactMessage[]>;
 }
 
 export class MemStorage implements IStorage {
-  private jobs: Map<string, JobWithQuality> = new Map();  // NEW: With quality
+  private jobs: Map<string, JobWithQuality> = new Map();
   private blogPosts: Map<string, BlogPost> = new Map();
   private contactMessages: Map<string, ContactMessage> = new Map();
 
@@ -43,10 +36,7 @@ export class MemStorage implements IStorage {
   }
 
   private seedBlogPosts() {
-    const posts: InsertBlogPost[] = [
-      // ... (tumhara existing blog posts code yahan paste karo)
-    ];
-
+    const posts: InsertBlogPost[] = [];
     posts.forEach(post => {
       const id = randomUUID();
       const blogPost: BlogPost = {
@@ -61,15 +51,20 @@ export class MemStorage implements IStorage {
     });
   }
 
-  // Job methods
-  async createJob(insertJob: InsertJobWithQuality): Promise<JobWithQuality> {  // NEW: With quality
+  async createJob(insertJob: InsertJobWithQuality): Promise<JobWithQuality> {
+    // Validate URL
+    if (!insertJob.url || typeof insertJob.url !== 'string' || !insertJob.url.match(/^(https?:\/\/)([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/)) {
+      console.error('Invalid job URL:', insertJob.url);
+      throw new Error('Invalid or missing URL in job creation');
+    }
+
     const id = randomUUID();
     const job: JobWithQuality = {
       ...insertJob,
       id,
       title: null,
       downloadFormat: insertJob.downloadFormat || 'mp4',
-      quality: insertJob.quality || '720p',  // NEW: Default 720p if not provided
+      quality: insertJob.quality || '720p',
       status: 'pending',
       progress: 0,
       outputPath: null,
@@ -77,14 +72,14 @@ export class MemStorage implements IStorage {
       errorMessage: null,
       createdAt: new Date(),
       completedAt: null,
-      expiresAt: new Date(Date.now() + 1 * 60 * 1000), // TEMP: 1 minute for testing
+      expiresAt: new Date(Date.now() + 1 * 60 * 1000),
     };
     this.jobs.set(id, job);
-    console.log(`Created job: ${id} in ${job.quality}, expiresAt: ${job.expiresAt.toISOString()}`);  // NEW: Debug log
+    console.log(`Created job: ${id} in ${job.quality}, expiresAt: ${job.expiresAt.toISOString()}`);
     return job;
   }
 
-  async getJob(id: string): Promise<JobWithQuality | undefined> {  // NEW: With quality
+  async getJob(id: string): Promise<JobWithQuality | undefined> {
     return this.jobs.get(id);
   }
 
@@ -128,9 +123,9 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getExpiredJobs(): Promise<JobWithQuality[]> {  // NEW: With quality
+  async getExpiredJobs(): Promise<JobWithQuality[]> {
     const now = new Date();
-    console.log(`Checking expired jobs at ${now.toISOString()}`);  // NEW: Debug log
+    console.log(`Checking expired jobs at ${now.toISOString()}`);
     const expired = Array.from(this.jobs.values()).filter(job => {
       const isExpired = job.expiresAt < now;
       console.log(`Job ${job.id}: expiresAt ${job.expiresAt.toISOString()} vs now ${now.toISOString()} - Expired: ${isExpired}`);
@@ -142,10 +137,9 @@ export class MemStorage implements IStorage {
 
   async deleteJob(id: string): Promise<void> {
     this.jobs.delete(id);
-    console.log(`Deleted job: ${id} from storage`);  // NEW: Debug log
+    console.log(`Deleted job: ${id} from storage`);
   }
 
-  // Blog Post methods
   async getBlogPosts(): Promise<BlogPost[]> {
     return Array.from(this.blogPosts.values())
       .filter(post => post.published)
@@ -182,7 +176,6 @@ export class MemStorage implements IStorage {
     return updatedPost;
   }
 
-  // Contact Message methods
   async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
     const id = randomUUID();
     const message: ContactMessage = {
