@@ -1,9 +1,13 @@
-import { execFile } from 'child_process';
-import path from 'path';
+import { spawn } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs/promises';  // NEW: For file check
+import fs from 'fs/promises';
+import path from 'path';
+import { log } from '../vite';
 
-const execFileAsync = promisify(execFile);
+const execAsync = promisify(spawn);
+
+const isWindows = process.platform === 'win32';
+const ytDlpPath = isWindows ? path.join(process.cwd(), 'yt-dlp.exe') : path.join(process.cwd(), 'yt-dlp');
 
 export async function downloadVideoWithYtDlp(
     url: string,
@@ -12,47 +16,57 @@ export async function downloadVideoWithYtDlp(
     quality: string,
     onProgress?: (progress: number) => void
 ): Promise<{ success: boolean; error?: string }> {
+    log(`downloadVideoWithYtDlp called with URL: ${url}, format: ${format}, quality: ${quality}`, 'videoDownloader');
+    if (!url || typeof url !== 'string' || !url.match(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/)) {
+        log(`Invalid download URL: ${url}`, 'videoDownloader');
+        return { success: false, error: 'Invalid or missing URL' };
+    }
+
     try {
-        const ytDlpPath = path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp.exe');
-        console.log(`Attempting to use yt-dlp path: ${ytDlpPath}`); // Enhanced debug
-
-        // Check if yt-dlp executable exists
+        log(`Checking yt-dlp binary at: ${ytDlpPath}`, 'videoDownloader');
         if (!(await fs.access(ytDlpPath).then(() => true).catch(() => false))) {
-            throw new Error(`yt-dlp executable not found at ${ytDlpPath}. Please install youtube-dl-exec or verify path.`);
+            throw new Error(`yt-dlp executable not found at ${ytDlpPath}. Please verify binary in server directory.`);
         }
-
-        const options = {
-            format: format === 'mp3' ? 'bestaudio/best' : `best[height<=${quality.replace('p', '')}][ext=mp4]/best`,
-            output: outputPath,
-            'no-warnings': true,
-            'ignore-errors': true,
-        };
 
         const args = [
-            url,
-            '--format', options.format,
-            '--output', options.output,
+            '--format', format === 'mp3' ? 'bestaudio/best' : `bestvideo[height<=${quality.replace('p', '')}][ext=mp4]/best`,
+            '--output', outputPath,
             '--no-warnings',
             '--ignore-errors',
+            '--no-check-certificates',
+            '--add-header', 'referer:youtube.com',
+            '--add-header', 'user-agent:googlebot',
+            url
         ];
+        log(`Executing yt-dlp with path: ${ytDlpPath}, args: ${args.join(' ')}`, 'videoDownloader');
 
-        console.log(`Running yt-dlp with args: ${args.join(' ')}`); // Debug args
-        const { stdout, stderr } = await execFileAsync(ytDlpPath, args);
+        const process = spawn(ytDlpPath, args, { shell: isWindows });
 
-        if (stderr) {
-            console.error('yt-dlp stderr:', stderr);
-            throw new Error(`Download failed: ${stderr}`);
-        }
+        process.stdout?.on('data', (data) => {
+            const output = data.toString();
+            const match = output.match(/(\d+\.\d)%/);
+            if (match && onProgress) {
+                const percent = parseFloat(match[1]);
+                log(`Download progress for ${url}: ${percent}%`, 'videoDownloader');
+                onProgress(percent);
+            }
+        });
 
-        // Verify file creation
-        await fs.access(outputPath).catch(err => {
+        process.stderr?.on('data', (data) => {
+            log(`yt-dlp stderr: ${data.toString()}`, 'videoDownloader');
+        });
+
+        await execAsync(ytDlpPath, args, { shell: isWindows });
+        log(`Verifying file at: ${outputPath}`, 'videoDownloader');
+        await fs.access(outputPath).catch((err) => {
             throw new Error(`File not created at ${outputPath}: ${err.message}`);
         });
 
-        console.log('Download successful, file saved at:', outputPath);
+        log(`Download completed for ${url}`, 'videoDownloader');
         return { success: true };
     } catch (error) {
-        console.error('youtube-dl-exec download failed:', error);
-        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        log(`Download error for ${url}: ${errorMessage}`, 'videoDownloader');
+        return { success: false, error: errorMessage };
     }
 }

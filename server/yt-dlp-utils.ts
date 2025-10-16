@@ -1,36 +1,37 @@
-import youtubedl from 'youtube-dl-exec';
+import { spawn } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs/promises';
+import path from 'path';
+import { log } from './vite';
 
-// Dynamic binary path: Windows uses default, Linux uses repo binary
+const execAsync = promisify(spawn);
+
 const isWindows = process.platform === 'win32';
-const ytDlpPath = isWindows ? undefined : process.env.YT_DLP_PATH || './yt-dlp';
-const ytDlp = youtubedl(ytDlpPath);
+const ytDlpPath = isWindows ? path.join(process.cwd(), 'yt-dlp.exe') : path.join(process.cwd(), 'yt-dlp');
 
-/**
- * Fetch video title using youtube-dl-exec (wrapper for yt-dlp)
- */
 export async function getTitleFromYtDlp(videoUrl: string): Promise<string | null> {
-    // Robust URL validation
+    log(`getTitleFromYtDlp called with: ${videoUrl}`, 'yt-dlp-utils');
     if (!videoUrl || typeof videoUrl !== 'string' || !videoUrl.match(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/)) {
-        console.error('Invalid or missing URL:', videoUrl);
+        log(`Invalid or missing URL: ${videoUrl}`, 'yt-dlp-utils');
         return null;
     }
 
     try {
-        console.log(`🔍 Fetching title for: ${videoUrl}`);
+        log(`Checking yt-dlp binary at: ${ytDlpPath}`, 'yt-dlp-utils');
+        if (!(await fs.access(ytDlpPath).then(() => true).catch(() => false))) {
+            throw new Error(`yt-dlp executable not found at ${ytDlpPath}. Please verify binary in server directory.`);
+        }
 
-        // JSON dump (no download)
-        const jsonOutput = await ytDlp(videoUrl, {
-            dumpSingleJson: true,
-            noDownload: true,
-            noWarnings: true,
-        });
-
+        const args = ['--dump-json', '--no-download', '--no-warnings', '--ignore-errors', videoUrl];
+        log(`Executing yt-dlp with path: ${ytDlpPath}, args: ${args.join(' ')}`, 'yt-dlp-utils');
+        const { stdout } = await execAsync(ytDlpPath, args, { shell: isWindows });
+        const jsonOutput = JSON.parse(stdout.toString());
         const title = jsonOutput.title || 'Unknown Title';
-        console.log(`✅ Title fetched: ${title}`);
+        log(`✅ Title fetched: ${title}`, 'yt-dlp-utils');
         return title;
-
     } catch (error) {
-        console.error('Title fetch error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        log(`Title fetch error: ${errorMessage}`, 'yt-dlp-utils');
         return null;
     }
 }
