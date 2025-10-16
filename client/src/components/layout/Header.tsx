@@ -27,31 +27,28 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center space-x-2 cursor-pointer" data-testid="logo-link">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Folder className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                VidDonloader
-              </span>
+          <Link href="/" className="flex items-center space-x-2 cursor-pointer" data-testid="logo-link">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Folder className="w-5 h-5 text-primary-foreground" />
             </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              VidDonloader
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href}>
-                <a
-                  className={`text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-primary"
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`text-sm font-medium transition-colors ${isActive(item.href)
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-primary"
                   }`}
-                  data-testid={`nav-link-${item.name.toLowerCase()}`}
-                >
-                  {item.name}
-                </a>
+                data-testid={`nav-link-${item.name.toLowerCase()}`}
+              >
+                {item.name}
               </Link>
             ))}
           </nav>
@@ -92,18 +89,17 @@ export function Header() {
           <div className="md:hidden py-4 border-t border-border">
             <nav className="flex flex-col space-y-2">
               {navigation.map((item) => (
-                <Link key={item.name} href={item.href}>
-                  <a
-                    className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(item.href)
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(item.href)
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    data-testid={`mobile-nav-link-${item.name.toLowerCase()}`}
-                  >
-                    {item.name}
-                  </a>
+                  onClick={() => setMobileMenuOpen(false)}
+                  data-testid={`mobile-nav-link-${item.name.toLowerCase()}`}
+                >
+                  {item.name}
                 </Link>
               ))}
             </nav>

@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 // FIXED: Local imports mein .js extension add karna zaroori hai
 import { registerRoutes } from "./routes.js";
-import { setupVite, serveStatic, log } from "./vite.js";
+import { serveStatic, log } from "./vite.js";
 
 const app = express();
 app.use(express.json());
@@ -58,14 +58,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(status).json({ message });
   });
 
-  // Development mein Vite server set up karein
-  // Production mein static serve mat karo (frontend Vercel pe hai)
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } // Else block remove kiya gaya - backend only for Render
+  // Development mein Vite server ko comment kiya - frontend alag chal raha hai
+  // if (app.get("env") === "development") {
+  //   await setupVite(app, server);
+  // }
 
   // Server start karein - Render ke default port use karne ke liye adjust
-  const port = parseInt(process.env.PORT || '3000', 10); // Render default port
+  const port = parseInt(process.env.PORT || '5000', 10); // Updated to match .env
   server.listen({
     port,
     host: "0.0.0.0",
