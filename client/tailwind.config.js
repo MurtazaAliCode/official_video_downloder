@@ -28,7 +28,7 @@ module.exports = {
           foreground: "var(--primary-foreground)",
           5: "hsl(var(--primary) / 0.05)", // Added opacity 5%
           10: "hsl(var(--primary) / 0.1)", // Added opacity 10%
-          90: "hsl(var(--primary) / 0.9)", // Added for consistency (optional)
+          90: "hsl(var(--primary) / 0.9)", // Added for consistency
         },
         secondary: {
           DEFAULT: "var(--secondary)",
@@ -87,24 +87,58 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        "gradient-bg": "linear-gradient(135deg, hsl(221.2, 83.2%, 53.3%) 0%, hsl(262.1, 83.3%, 57.8%) 50%, hsl(300, 76%, 62%) 100%)", // Match index.css
-        "gradient-bg-dark": "linear-gradient(135deg, hsl(221.2, 83.2%, 33.3%) 0%, hsl(262.1, 83.3%, 37.8%) 50%, hsl(300, 76%, 42%) 100%)", // Match index.css
+        "gradient-bg": "linear-gradient(135deg, hsl(221.2, 83.2%, 53.3%) 0%, hsl(262.1, 83.3%, 57.8%) 50%, hsl(300, 76%, 62%) 100%)",
+        "gradient-bg-dark": "linear-gradient(135deg, hsl(221.2, 83.2%, 33.3%) 0%, hsl(262.1, 83.3%, 37.8%) 50%, hsl(300, 76%, 42%) 100%)",
       },
       transitionProperty: {
-        'width': 'width', // Optional: Makes transition-width a default utility
+        'width': 'width',
       },
     },
   },
   plugins: [
-    require("tailwindcss-animate"), // CommonJS plugin
-    require("@tailwindcss/typography"), // CommonJS plugin
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
   ],
   safelist: [
-    { pattern: /^dark:/ }, // Matches dark: prefixed classes (e.g., dark:bg-background)
-    { pattern: /gradient/ }, // Ensure gradient classes are not purged
+    { pattern: /^dark:/ }, // Matches dark: prefixed classes
+    { pattern: /gradient/ }, // Gradient classes
     { pattern: /btn-gradient/ }, // Custom button gradients
-    { pattern: /upload-area/ }, // Custom upload area class
-    { pattern: /progress-bar/ }, // Custom progress bar class
-    { pattern: /card-hover/ }, // Custom card hover class
+    { pattern: /upload-area/ }, // Custom upload area
+    { pattern: /progress-bar/ }, // Custom progress bar
+    { pattern: /card-hover/ }, // Custom card hover
+    // Added for DownloadForm.tsx
+    'max-w-md',
+    'mx-auto',
+    'p-4',
+    'bg-gray-100',
+    'rounded-lg',
+    'shadow-md',
+    'text-2xl',
+    'font-bold',
+    'mb-4',
+    'text-center',
+    'space-y-4',
+    'w-full',
+    'p-2',
+    'border',
+    'rounded',
+    'focus:outline-none',
+    'focus:ring-2',
+    'focus:ring-blue-500',
+    'bg-blue-500',
+    'text-white',
+    'hover:bg-blue-600',
+    'mt-4',
+    'bg-gray-200',
+    'rounded-full',
+    'h-2.5',
+    'bg-blue-500',
+    'mt-2',
+    'text-red-500',
+    'inline-block',
+    'bg-green-500',
+    'hover:bg-green-600',
+    { pattern: /bg-(blue|green|red|gray)-(100|500|600)/ }, // Dynamic background colors
+    { pattern: /text-(lg|sm|2xl)/ }, // Dynamic text sizes
   ],
 };
