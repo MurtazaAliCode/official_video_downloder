@@ -78,7 +78,7 @@ export default function Home() {
     setErrorMessage("");
 
     try {
-      const response = await apiRequest('POST', '/api/download-video', {
+      const response = await apiRequest('POST', `${process.env.VITE_API_URL}/api/download-video`, {
         url: videoUrl,
         format: downloadFormat,
         quality: quality, // NEW: Quality bhej rahe backend ko
@@ -113,7 +113,7 @@ export default function Home() {
     if (!jobId) return;
 
     try {
-      const response = await apiRequest('GET', `/api/status/${jobId}`);
+      const response = await apiRequest('GET', `${process.env.VITE_API_URL}/api/status/${jobId}`);
       const data = await response.json();
 
       setStatus(data.status);
@@ -330,9 +330,9 @@ export default function Home() {
                     { value: "25,000+", label: "Happy Users" },
                     { value: "MP4", label: "Output Format" },
                   ].map((stat, index) => (
-                    <div key={index} className="text-center">
-                      <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                      <div className="text-sm text-muted-foreground">{stat.label}</div>
+                    <div key={index} style="text-align: center;">
+                      <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
                     </div>
                   ))}
                 </CardContent>
@@ -392,19 +392,19 @@ export default function Home() {
                 features: ["No malware", "Privacy focused", "Secure downloads"],
                 color: "yellow",
               },
-            ].map((feature, index) => (
+            ].map((item, index) => (
               <Card key={index} className="card-hover">
                 <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-${feature.color}-500/10 rounded-lg flex items-center justify-center mb-4`}>
-                    <div className={`w-6 h-6 text-${feature.color}-500`}>
+                  <div className={`w-12 h-12 bg-${item.color}-500/10 rounded-lg flex items-center justify-center mb-4`}>
+                    <div className={`w-6 h-6 text-${item.color}-500`}>
                       <CheckCircle />
                     </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-card-foreground mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground mb-4">{feature.desc}</p>
+                  <h3 className="text-xl font-bold text-card-foreground mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground mb-4">{item.desc}</p>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    {feature.features.map((item, i) => (
-                      <li key={i}>• {item}</li>
+                    {item.features.map((feature, i) => (
+                      <li key={i}>• {feature}</li>
                     ))}
                   </ul>
                 </CardContent>
